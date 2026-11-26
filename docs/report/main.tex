@@ -27,9 +27,9 @@
 \usepackage[hidelinks]{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=cyan!70!blue,citecolor=black}
 
-% ---------------------------------------------------------------- details to fill in
-\newcommand{\lecturer}{\textcolor{red}{[Lecturer name]}} % <-- TODO: replace with the CSE731 lecturer
-\newcommand{\submissiondate}{26/11/2026}
+% ---------------------------------------------------------------- details
+\newcommand{\lecturer}{Prof. Meenakshi D Souza}
+\newcommand{\submissiondate}{30/11/2026}
 \newcommand{\repourl}{https://github.com/gishee003/Blog-E2E-Testing}
 
 % ---------------------------------------------------------------- styling
@@ -101,9 +101,9 @@
   \vspace{1.2cm}
   {\large\bfseries Lecturer in charge:\par}
   \vspace{0.2cm}
-  {\Large \lecturer\par}
+  {\Large {Prof. Meenakshi D Souza}\par}
   \vfill
-  {\bfseries Submission Date : \submissiondate\par}
+  {\bfseries Submission Date : 30/11/2026\par}
 \end{titlepage}
 
 \pagenumbering{roman}
@@ -114,35 +114,33 @@
 % ================================================================= CHAPTER 1
 \chapter{Introduction}
 
-This project performs \textbf{end-to-end functional testing} of a full-stack web
-application. The application under test is a \textbf{MERN} (MongoDB, Express,
-React, Node.js) blog in which users register, log in, publish and edit posts, and
-comment on posts. Every one of these actions changes the database, and the most
-important ones are protected by an authenticated session.
+In this project we tested a web application from end to end using
+\textbf{Playwright}. The application is a blog built with the \textbf{MERN}
+stack (MongoDB, Express, React and Node.js). On this blog, a user can register,
+log in, write posts, edit them and comment on posts. All of these actions are
+saved in the database, and most of them need the user to be logged in.
 
-The test suite is written with \textbf{Playwright} and runs on the three major
-browser engines (Chromium, Firefox and WebKit). It covers:
+We ran our tests on three browsers: Chromium, Firefox and WebKit. The tests
+cover the following areas:
 
 \begin{itemize}[nosep]
-  \item \textbf{End-to-end workflows}: user registration and authentication,
-        creating and editing records, and the application's critical
-        publish--edit--comment journey, with each database change verified
-        directly in MongoDB.
-  \item \textbf{Negative and edge cases} derived with the client-side
-        \textbf{session-data based} testing technique: the client's session
-        (a JWT kept in \code{localStorage}) is removed, tampered with, forged,
-        expired, swapped between users and replayed.
-  \item \textbf{Network failures}: aborted requests, offline mode, slow
-        responses and server errors, simulated with Playwright's network
-        interception.
-  \item \textbf{Unauthorized access} and \textbf{form validation errors}, both
-        in the browser and directly against the server.
+  \item \textbf{Main workflows}: registering, logging in, creating and editing
+        posts, and adding comments. After each action we also check the
+        database to make sure the data was really saved.
+  \item \textbf{Negative and edge cases} using \textbf{session-data based
+        testing}. The app keeps the login session as a token (JWT) in the
+        browser's \code{localStorage}. We changed this token in different ways,
+        for example by removing it, editing it, using an expired one or using
+        another user's token, and checked how the app reacted.
+  \item \textbf{Network failures}, such as a server that cannot be reached, the
+        browser going offline, a slow server and server errors.
+  \item \textbf{Unauthorized access} and \textbf{form validation errors}.
 \end{itemize}
 
-No AI agents or agentic testing frameworks were used to generate or run the
-tests; all test cases are ordinary, hand-written Playwright scripts.
+We wrote all the test cases ourselves. We did not use any AI agents or
+agent-based testing frameworks to create or run the tests.
 
-\section*{Deliverables in this report}
+\section*{What this report contains}
 
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{6.2cm}X}
 \toprule
@@ -152,63 +150,76 @@ Application architecture diagram & Chapter~\ref{ch:arch} \\
 Testing problems considered & Chapter~\ref{ch:problems} \\
 Choice of tools and browser compatibility & Chapter~\ref{ch:tools} \\
 List of test cases & Chapter~\ref{ch:cases} \\
-Execution summary with pass/fail rates & Chapter~\ref{ch:summary} \\
+Summary of results with pass/fail rates & Chapter~\ref{ch:summary} \\
 Bug reports & Chapter~\ref{ch:bugs} \\
-Application and test screenshots & Chapter~\ref{ch:screens} \\
-Repository (source, install steps, tests) & \href{\repourl}{\nolinkurl{github.com/gishee003/Blog-E2E-Testing}} \\
+Screenshots of the application and tests & Chapter~\ref{ch:screens} \\
+Repository (source code, installation, tests) & \href{\repourl}{\nolinkurl{github.com/gishee003/Blog-E2E-Testing}} \\
 \bottomrule
 \end{tabularx}
 
 % ================================================================= CHAPTER 2
-\chapter{Application Under Test and Architecture}\label{ch:arch}
+\chapter{Application and Architecture}\label{ch:arch}
 
 \section{The application}
 
-The application is the open-source project
-\href{https://github.com/apirollijr/blog}{\nolinkurl{apirollijr/blog}}
-(commit \code{5928eab}, package licence ISC). It was chosen because it is a
-genuine three-tier MERN application with token-based authentication,
-per-user ownership of records and a small enough codebase to understand
-completely. Table~\ref{tab:stack} lists the technology stack.
+We did not build this application ourselves. We took it from the open-source
+repository \href{https://github.com/apirollijr/blog}{\nolinkurl{apirollijr/blog}}
+on GitHub (commit \code{5928eab}, ISC licence). We picked it because it has all
+three layers of a web application (a React front end, an Express server and a
+MongoDB database), it uses token-based login, and every post belongs to a user.
+The code is also small, so we were able to read all of it before writing our
+tests. Table~\ref{tab:stack} shows the technologies it uses.
 
 \begin{table}[H]
 \centering
 \begin{tabular}{lll}
 \toprule
-\textbf{Tier} & \textbf{Technology} & \textbf{Version} \\
+\textbf{Layer} & \textbf{Technology} & \textbf{Version} \\
 \midrule
-Client & React (Create React App), React Router, Axios & 19.1.0, 7.6.3, 1.10.0 \\
+Front end & React (Create React App), React Router, Axios & 19.1.0, 7.6.3, 1.10.0 \\
 Server & Node.js, Express & 22.15.0, 5.1.0 \\
-Auth & jsonwebtoken (HS256 JWT, 7-day expiry), bcryptjs & 9.0.2, 3.0.2 \\
-Data access & Mongoose ODM & 8.16.1 \\
+Login & jsonwebtoken (JWT, valid for 7 days), bcryptjs & 9.0.2, 3.0.2 \\
+Database access & Mongoose & 8.16.1 \\
 Database & MongoDB Community Server & 8.0.9 \\
 \bottomrule
 \end{tabular}
-\caption{Technology stack of the application under test}
+\caption{Technologies used by the application}
 \label{tab:stack}
 \end{table}
 
-\paragraph{Completing the front end.} In the upstream repository the back end
-is complete, but four front-end files are empty (\code{pages/Post.js},
-\code{components/PostForm.js}, \code{components/CommentList.js} and
-\code{components/PostList.js}). As shipped, the UI could not create or edit
-posts or show comments, so no end-to-end workflow was possible. We implemented
-the missing screens: a post page with author-only Edit/Delete, a create/edit
-form, a comment list, a navigation bar with logout and a client-side route
-guard. The Axios client was extended to send the JWT and to end the session on
-a \code{401}. \textbf{The back end and the original Home, Login and Register
-pages were left unchanged}, so every defect reported in
-Chapter~\ref{ch:bugs} is present in the upstream code. Every added or modified
-file is marked \code{[added for E2E project]} in the repository.
+\subsection*{Changes we made to the front end}
+
+When we downloaded the project, the back end was complete, but four front-end
+files were empty: \code{pages/Post.js}, \code{components/PostForm.js},
+\code{components/CommentList.js} and \code{components/PostList.js}. Because of
+this, the website had no page for a single post, no form to create or edit a
+post and no comments section. We could not test any real workflow without these
+pages, so we wrote them ourselves. We added:
+
+\begin{itemize}[nosep]
+  \item a post page, with Edit and Delete buttons shown only to the author,
+  \item a form for creating and editing posts,
+  \item a comments section,
+  \item a navigation bar with a Logout button,
+  \item a check that sends logged-out users to the login page.
+\end{itemize}
+
+We also changed the Axios client so that it sends the token with every request
+and logs the user out if the server replies with \code{401}.
+
+We did not change the back end or the original Home, Login and Register pages.
+This means all the bugs in Chapter~\ref{ch:bugs} come from the original
+project and not from our changes. In the repository, every file we added or
+changed is marked with the comment \code{[added for E2E project]}.
 
 \section{Architecture}
 
-Figure~\ref{fig:arch} shows the three tiers of the application and how the
-Playwright test harness connects to each of them. The harness drives real
-browsers through the UI, intercepts the traffic between client and server to
-inject network failures, calls the REST API directly for set-up and
-server-side checks, and reads MongoDB to verify that UI actions really changed
-the stored data.
+Figure~\ref{fig:arch} shows the three layers of the application and how our
+tests connect to them. Playwright opens real browsers and uses the website the
+way a user would. It can also block or change the requests between the browser
+and the server, which is how we create network errors. To set up test data,
+and for some server checks, it calls the REST API directly. Finally, it
+connects to MongoDB to check that the data was really saved.
 
 \begin{figure}[H]
 \centering
@@ -228,23 +239,23 @@ the stored data.
 \draw[arr] (spa) -- (axios);
 \draw[arr, <->] (axios) -- (ls);
 \begin{scope}[on background layer]
-\node[tier, fill=blue!2, fit=(spa)(axios)(ls), label={[font=\sffamily\bfseries]above:{Client tier (browser, :3000)}}] (client) {};
+\node[tier, fill=blue!2, fit=(spa)(axios)(ls), label={[font=\sffamily\bfseries]above:{Front end (browser, :3000)}}] (client) {};
 \end{scope}
 
 % Server tier
 \node[box, fill=green!6, right=3.2cm of spa] (routes) {Express routers\\\scriptsize \texttt{/api/auth, /posts,}\\\scriptsize \texttt{/comments, /users}};
-\node[box, fill=green!6, below=0.6cm of routes] (mw) {\texttt{protect} middleware\\\scriptsize verifies JWT, loads user};
+\node[box, fill=green!6, below=0.6cm of routes] (mw) {\texttt{protect} middleware\\\scriptsize checks JWT, loads user};
 \node[box, fill=green!6, below=0.6cm of mw] (ctrl) {Controllers + Mongoose\\\scriptsize auth, post, comment, user};
 \draw[arr] (routes) -- (mw);
 \draw[arr] (mw) -- (ctrl);
 \begin{scope}[on background layer]
-\node[tier, fill=green!2, fit=(routes)(mw)(ctrl), label={[font=\sffamily\bfseries]above:{Server tier (Node/Express, :5000)}}] (server) {};
+\node[tier, fill=green!2, fit=(routes)(mw)(ctrl), label={[font=\sffamily\bfseries]above:{Server (Node/Express, :5000)}}] (server) {};
 \end{scope}
 
 % Data tier
 \node[box, fill=yellow!10, right=2.6cm of mw, minimum height=2.2cm] (db) {MongoDB\\[2pt]\scriptsize\texttt{users}\\\scriptsize\texttt{posts}\\\scriptsize\texttt{comments}};
 \begin{scope}[on background layer]
-\node[tier, fill=yellow!3, fit=(db), label={[font=\sffamily\bfseries]above:Data tier}] (data) {};
+\node[tier, fill=yellow!3, fit=(db), label={[font=\sffamily\bfseries]above:Database}] (data) {};
 \end{scope}
 
 \draw[arr] (axios.east) -- node[lbl, above] {HTTP / JSON} (routes.west |- axios.east);
@@ -253,23 +264,23 @@ the stored data.
 % Test harness
 \node[box, fill=orange!10, minimum width=15.5cm, minimum height=1.1cm, anchor=north]
   (pw) at ($(ls.south -| routes.south) + (0.4,-1.6)$)
-  {\textbf{Playwright test runner} \scriptsize(Node.js)\quad
+  {\textbf{Playwright tests} \scriptsize(Node.js)\quad
    Chromium \textbullet\ Firefox \textbullet\ WebKit \quad|\quad \texttt{page.route} \textbullet\ \texttt{setOffline} \quad|\quad
-   \texttt{APIRequestContext} \quad|\quad MongoDB driver};
+   API requests \quad|\quad MongoDB driver};
 \coordinate (t1) at ($(pw.north west)!0.12!(pw.north east)$);
 \coordinate (t2) at ($(pw.north west)!0.30!(pw.north east)$);
 \coordinate (t3) at ($(pw.north west)!0.47!(pw.north east)$);
 \coordinate (t4) at ($(pw.north west)!0.89!(pw.north east)$);
-\draw[tarr] (t1) -- node[lbl, pos=0.45] {drives UI, sets session data} (t1 |- client.south);
-\draw[tarr] (t2) -- node[lbl, pos=0.25] {intercepts traffic} (t2 |- axios.east);
-\draw[tarr] (t3) -- node[lbl, pos=0.45] {REST calls} (t3 |- server.south);
-\draw[tarr] (t4) -- node[lbl, pos=0.45] {verifies DB} (t4 |- data.south);
+\draw[tarr] (t1) -- node[lbl, pos=0.45] {uses the website, changes the token} (t1 |- client.south);
+\draw[tarr] (t2) -- node[lbl, pos=0.25] {blocks or changes requests} (t2 |- axios.east);
+\draw[tarr] (t3) -- node[lbl, pos=0.45] {calls the API} (t3 |- server.south);
+\draw[tarr] (t4) -- node[lbl, pos=0.45] {checks the data} (t4 |- data.south);
 \end{tikzpicture}}
-\caption{Application architecture and the test harness}
+\caption{Architecture of the application and how the tests connect to it}
 \label{fig:arch}
 \end{figure}
 
-\section{Data model and API}
+\section{Database and API}
 
 \begin{table}[H]
 \centering
@@ -291,189 +302,218 @@ the stored data.
 \small
 \begin{tabular}{lllc}
 \toprule
-\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} & \textbf{Auth} \\
+\textbf{Method} & \textbf{Endpoint} & \textbf{What it does} & \textbf{Login needed} \\
 \midrule
-POST & \code{/api/auth/register} & create account, returns JWT & -- \\
-POST & \code{/api/auth/login} & log in, returns JWT & -- \\
-GET & \code{/api/posts}, \code{/api/posts/:id} & list / read posts & -- \\
-POST & \code{/api/posts} & create post & JWT \\
-PUT, DELETE & \code{/api/posts/:id} & edit / delete own post & JWT + owner \\
-GET & \code{/api/comments/:postId} & comments of a post & -- \\
-POST & \code{/api/comments} & add comment & JWT \\
-DELETE & \code{/api/comments/:id} & delete own comment & JWT + owner \\
-GET, PUT & \code{/api/users/me} & read / update own profile & JWT \\
-GET & \code{/api/users}, \code{/api/users/:id} & list users / read a user & -- \\
+POST & \code{/api/auth/register} & create an account, returns a JWT & -- \\
+POST & \code{/api/auth/login} & log in, returns a JWT & -- \\
+GET & \code{/api/posts}, \code{/api/posts/:id} & list posts / read one post & -- \\
+POST & \code{/api/posts} & create a post & yes \\
+PUT, DELETE & \code{/api/posts/:id} & edit / delete your own post & yes, author only \\
+GET & \code{/api/comments/:postId} & comments on a post & -- \\
+POST & \code{/api/comments} & add a comment & yes \\
+DELETE & \code{/api/comments/:id} & delete your own comment & yes, author only \\
+GET, PUT & \code{/api/users/me} & read / update your profile & yes \\
+GET & \code{/api/users}, \code{/api/users/:id} & list users / read one user & -- \\
 \bottomrule
 \end{tabular}
 \caption{REST API of the application}
 \end{table}
 
-\paragraph{Session mechanism.} On login the server signs a JWT whose payload is
-\code{\{id: <userId>\}} and returns it. The client stores it in
-\code{localStorage["token"]} and sends it on every request as
-\code{Authorization: Bearer <token>}. The \code{protect} middleware verifies the
-signature and expiry, loads the user and attaches it to the request; the
-controllers then compare the user with the record's \code{author} for
-owner-only operations. Logout only deletes the token from the browser. The
-whole client-side session is therefore one string, which makes it a natural
-target for session-data based testing.
+\subsection*{How login works}
+
+When a user logs in, the server creates a JWT that contains the user's id and
+sends it back. The browser saves this token in \code{localStorage} under the
+key \code{token}, and sends it with every request in the header
+\code{Authorization: Bearer <token>}. On the server, the \code{protect}
+middleware checks that the token is valid and not expired, finds the user and
+passes it on. For editing and deleting, the server also checks that the
+logged-in user is the author of the post or comment.
+
+When the user clicks Logout, the token is only deleted from the browser. The
+server is not told about it. So on the browser side, the whole login session
+is just one string. This is the main reason we chose session-data based
+testing for this application.
 
 % ================================================================= CHAPTER 3
 \chapter{Testing Problems Considered}\label{ch:problems}
 
 \section{End-to-end workflows}
 
-The workflow tests exercise the paths a real user follows, through the real
-UI, against the real server and database:
+These tests follow the same steps a real user would take, using the real
+website, server and database:
 
 \begin{enumerate}[nosep]
-  \item \textbf{Registration and authentication}: register, log in, wrong
-        password, duplicate e-mail, logout, and browser-level validation of
-        the registration form.
-  \item \textbf{Record creation and editing}: publish a post, edit it, delete
-        it, add and delete comments, and verify that users who are not the
-        author do not get edit or delete controls.
-  \item \textbf{Critical journey}: one test that registers a new user, logs in,
-        publishes, edits, comments, logs out and reads the post as a visitor.
+  \item \textbf{Registration and login}: registering, logging in, entering a
+        wrong password, registering with an e-mail that is already used,
+        logging out, and the browser's checks on the registration form.
+  \item \textbf{Creating and editing data}: publishing a post, editing it,
+        deleting it, adding and deleting comments, and making sure that other
+        users do not see the Edit and Delete buttons.
+  \item \textbf{Complete flow}: one long test where a new user registers, logs
+        in, publishes a post, edits it, adds a comment, logs out and then opens
+        the post as a visitor.
 \end{enumerate}
 
-Each test checks the outcome at three levels: what the UI shows, the URL the
-user ends up on, and the \textbf{document stored in MongoDB} (for example, that
-a new post has the logged-in user as \code{author}, or that a password is
-stored as a bcrypt hash).
+In every test we check three things: what is shown on the page, which page
+the user ends up on, and what is saved in MongoDB. For example, after creating
+a post we check that its author in the database is the logged-in user. After
+registering, we check that the password is saved as a bcrypt hash and not as
+plain text.
 
 \section{Client-side technique: session-data based testing}
 
-Client-side testing techniques deliberately change what the client sends,
-to check whether the server trusts data it should not. We chose
-\textbf{session-data based testing}: the test cases are derived by
-systematically mutating the client's session state, then observing
-(1) the server's status code, (2) the client's reaction and (3) whether the
-database changed. Table~\ref{tab:sessionmut} lists the mutations used and the
-test case derived from each.
+In client-side testing, we change the data that the browser sends to the
+server, to see whether the server trusts data that it should not trust. For
+this project we used \textbf{session-data based testing}. We took the login
+token that the browser stores and changed it in different ways. After each
+change we checked three things:
+
+\begin{enumerate}[nosep]
+  \item the status code the server returned,
+  \item what the website did next,
+  \item whether anything changed in the database.
+\end{enumerate}
+
+Table~\ref{tab:sessionmut} lists each change we made and the test case we
+wrote for it.
 
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.3cm}X>{\raggedright\arraybackslash}p{1.6cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.6cm}X>{\raggedright\arraybackslash}p{1.6cm}}
 \toprule
-\textbf{Session-data mutation} & \textbf{Expected behaviour} & \textbf{Test} \\
+\textbf{Change made to the session} & \textbf{What should happen} & \textbf{Test} \\
 \midrule
-No token & protected pages redirect to login & TC-SES-01 \\
-Payload edited to another user's id & signature check fails, 401 & TC-SES-02 \\
-Token past its expiry time & 401, user must log in again & TC-SES-03 \\
-Token signed with a guessed secret & 401, victim's post unchanged & TC-SES-04 \\
-Unsigned token (\code{alg: none}) & 401 & TC-SES-05 \\
-Valid token of user B on user A's post & 403, A's post unchanged & TC-SES-06 \\
-Valid token of a deleted account & 401 & TC-SES-07 \\
-Token replayed after logout & 401 (token revoked) & TC-SES-08 \\
-Reload / second tab & session persists & TC-SES-09 \\
-Separate browser context & sessions are isolated & TC-SES-10 \\
-Token removed mid-session & save blocked, input kept & TC-SES-11 \\
-Garbage string as token & detected on load and cleared & TC-SES-12 \\
+No token at all & protected pages go to the login page & TC-SES-01 \\
+Token edited to another user's id & server rejects it (401) & TC-SES-02 \\
+Token that has expired & 401, user has to log in again & TC-SES-03 \\
+Token signed with a guessed key & 401, the other user's post is not changed & TC-SES-04 \\
+Token with no signature (\code{alg: none}) & 401 & TC-SES-05 \\
+User B's real token used on user A's post & 403, A's post is not changed & TC-SES-06 \\
+Token of a user who was deleted & 401 & TC-SES-07 \\
+Old token used again after logout & 401 & TC-SES-08 \\
+Page reload or a second tab & user stays logged in & TC-SES-09 \\
+Two separate browser windows & the sessions do not mix & TC-SES-10 \\
+Token deleted while the user is typing & save is blocked, typed text is kept & TC-SES-11 \\
+Random text instead of a token & detected when the page loads and removed & TC-SES-12 \\
 \bottomrule
 \end{tabularx}
-\caption{Session-data mutations and the derived test cases}
+\caption{Changes made to the session and the test cases for them}
 \label{tab:sessionmut}
 \end{table}
 
-Tokens are manipulated with small helpers (\code{e2e-tests/utils/session.js}).
-Because the test run starts the API with a known secret, the suite can also
-create \emph{correctly signed} tokens with chosen properties, such as an expired
-token or a valid token for a user who has since been deleted:
+We wrote a few small helper functions for changing tokens
+(\code{e2e-tests/utils/session.js}). When the tests run, Playwright starts the
+server with a secret key that we know. Because of this, we can also create
+properly signed tokens for special cases, such as a token that has already
+expired, or a token for a user that we deleted from the database. Below is one
+of these helpers and a short part of a test that uses it:
 
 \begin{lstlisting}[language=JavaScript]
-// Keeps the header and signature, swaps the payload to another user id
+// Keeps the header and signature, but puts another user's id in the payload
 function tamperPayload(token, newUserId) {
   const [header, , signature] = token.split('.');
   const payload = Buffer.from(JSON.stringify({ id: newUserId })).toString('base64url');
   return `${header}.${payload}.${signature}`;
 }
-// Test: plant the tampered token, submit the form, check server, client and DB
+// In the test: save the edited token, submit the form, then check server, page and DB
 await plantToken(page, S.tamperPayload(attacker.token, victim.id));
 const res = await submitNewPost(page, title);
 expect(res.status()).toBe(401);
-await expectSessionEnded(page);                       // redirected, token cleared
-expect(await findPostsByTitle(title)).toHaveLength(0); // nothing saved
+await expectSessionEnded(page);                       // back on login page, token removed
+expect(await findPostsByTitle(title)).toHaveLength(0); // nothing was saved
 \end{lstlisting}
 
 \section{Network failures}
 
-Network failures are simulated without touching the application, using
-Playwright's request interception (\code{page.route}) and offline mode
-(\code{context.setOffline}). The cases cover a refused connection while
-publishing, going offline while commenting and then reconnecting, a failed
-post list on the home page, a slow (2\,s) API with an impatient double click,
-an HTTP~500 on login, a dropped connection on login and an HTTP~503 while
-saving an edit. In each case the test checks that the user is told what
-happened, that their input is not lost and that no partial or duplicate data
-reaches the database.
+We created network problems from the test code, without changing the
+application. Playwright can stop or change any request (\code{page.route}),
+and it can switch the browser offline (\code{context.setOffline}). Our tests
+cover these situations:
+
+\begin{itemize}[nosep]
+  \item the server refuses the connection while the user publishes a post,
+  \item the browser goes offline while adding a comment and then comes back online,
+  \item the list of posts fails to load on the home page,
+  \item the server is slow (2 seconds) and the user clicks Publish twice,
+  \item the server returns a 500 error during login,
+  \item the connection drops during login,
+  \item the server returns a 503 error while saving an edit.
+\end{itemize}
+
+In each case we check that the user sees a message, that what they typed is
+not lost, and that no half-saved or duplicate data ends up in the database.
 
 \section{Unauthorized access and form validation}
 
-Unauthorized access is covered by the session tests above and by an
-API-level check that every protected endpoint returns 401 without a token.
-Form validation is tested in the browser (required fields, malformed e-mail,
-whitespace-only input, the 150-character title limit, malformed and
-non-existent post ids). Because client-side checks can always be bypassed, a
-separate API project sends the same invalid input directly to the server and
-checks that the server rejects it with the correct status code.
+The session tests above already cover most unauthorized access cases. We also
+added an API test that calls every protected endpoint without a token and
+expects a 401 reply.
 
-\section{Test design decisions}
+For form validation, we tested empty fields, a wrong e-mail format, input with
+only spaces, the 150-character limit on titles, and wrong or non-existent post
+ids in the URL. Checks done in the browser can be skipped easily by sending a
+request directly to the server. So we also sent the same wrong input straight
+to the API, to see whether the server rejects it on its own.
+
+\section{How we set up the tests}
 
 \begin{itemize}[nosep]
-  \item \textbf{Isolation}: Playwright starts the API against a dedicated
-        database, \code{blog\_e2e}, which is emptied before every run.
-        Development data is never touched.
-  \item \textbf{Independent tests}: every test creates its own users and
-        records with unique names, so tests do not depend on each other's
-        order or data.
-  \item \textbf{Fast set-up}: preconditions (users, posts, comments) are
-        created through the REST API; only the behaviour under test is driven
-        through the UI.
-  \item \textbf{Stable selectors}: elements are located by role, label,
-        placeholder or \code{data-testid}, never by CSS layout.
-  \item \textbf{Production build}: the React app is tested as a production
-        build served statically, which avoids interference from the
-        development server's hot-reload connection during offline tests.
-  \item \textbf{Honest oracles}: tests assert the \emph{correct} behaviour.
-        When the application is wrong the test fails, and each failure is
-        traced to a bug report instead of being suppressed.
+  \item \textbf{Separate database}: the tests use their own database,
+        \code{blog\_e2e}, which is emptied before every run. Our normal
+        development data is never touched.
+  \item \textbf{Independent tests}: each test creates its own users and posts
+        with unique names, so the tests can run in any order.
+  \item \textbf{Quick setup}: data that a test needs beforehand (users, posts,
+        comments) is created through the API. Only the part being tested is
+        done through the website.
+  \item \textbf{Stable locators}: we find elements by their role, label,
+        placeholder or \code{data-testid}, not by CSS classes or position.
+  \item \textbf{Production build}: we test the built version of the React app.
+        The development server reloads the page when the network changes,
+        which made our offline tests unreliable.
+  \item \textbf{Tests expect the correct behaviour}: if the app does something
+        wrong, the test fails. We did not change any test to match wrong
+        behaviour. Every failure is listed as a bug in Chapter~\ref{ch:bugs}.
 \end{itemize}
 
 % ================================================================= CHAPTER 4
-\chapter{Tool Selection and Test Environment}\label{ch:tools}
+\chapter{Tools and Test Environment}\label{ch:tools}
 
 \section{Choice of tool}
+
+For this project we could use Playwright, Selenium or Cypress, along with
+Postman if needed. The table below compares them on the things we needed.
 
 \begin{table}[H]
 \centering
 \small
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Need} & \textbf{Playwright} & \textbf{Cypress} & \textbf{Selenium} \\
+\textbf{What we needed} & \textbf{Playwright} & \textbf{Cypress} & \textbf{Selenium} \\
 \midrule
-Cross-browser & Chromium, Firefox, WebKit from one API & Chromium, Firefox; no WebKit & all browsers via drivers \\
-Network failures & \code{route.abort/fulfill}, \code{setOffline} built in & \code{cy.intercept} & needs a proxy or CDP \\
-Session data & direct \code{localStorage} and multiple isolated contexts & single tab per test & possible, more code \\
-API testing & built-in \code{APIRequestContext} & \code{cy.request} & separate tool needed \\
-Reporting & HTML report with traces, screenshots, video & dashboard / plugins & third-party reporters \\
-Waiting & auto-waits on every action & auto-waits & explicit waits \\
+Several browsers & Chromium, Firefox and WebKit with the same code & Chromium and Firefox; no WebKit & all browsers, through drivers \\
+Network failures & built in (\code{route.abort}, \code{route.fulfill}, \code{setOffline}) & \code{cy.intercept} & needs a proxy or extra setup \\
+Session data & direct access to \code{localStorage}; several separate sessions in one test & one tab per test & possible, but more code \\
+API testing & built-in API requests & \code{cy.request} & needs a separate tool \\
+Reports & HTML report with traces, screenshots and video & dashboard or plugins & third-party reporters \\
+Waiting & waits automatically before each action & waits automatically & waits must be written by hand \\
 \bottomrule
 \end{tabularx}
-\caption{Comparison of the permitted automation tools}
+\caption{Comparison of the allowed testing tools}
 \end{table}
 
-\textbf{Playwright} was chosen because it covers every testing problem in
-Chapter~\ref{ch:problems} with one tool. It runs the same tests on all three
-browser engines, which provides the browser compatibility results below. It
-can intercept and fail any request and switch a browser context offline. It
-can open several isolated browser contexts in one test, which the
-session-isolation tests need. Its built-in API client replaced
-\textbf{Postman}, so the server-side checks are versioned and run together
-with the UI tests. The official MongoDB Node.js driver is used alongside it
-to verify database state, and \code{jsonwebtoken} is used to build the test
-tokens.
+We chose \textbf{Playwright} because it could do everything we needed in one
+tool. The same tests run on Chromium, Firefox and WebKit, which gave us the
+browser compatibility results below. It can block or fake any request and put
+the browser offline. It can also open two separate browser sessions inside one
+test, which we needed to check that sessions do not mix.
+
+Playwright can also send API requests by itself, so we did not need
+\textbf{Postman}. Our API tests are saved in the same project and run together
+with the browser tests. Along with Playwright, we used the MongoDB Node.js
+driver to check the database and the \code{jsonwebtoken} library to create
+test tokens.
 
 \section{Test environment}
 
@@ -486,11 +526,11 @@ tokens.
 \midrule
 Operating system & Windows 11 Home \\
 Node.js / npm & 22.15.0 / 10.9.2 \\
-MongoDB & 8.0.9 (local service), test database \code{blog\_e2e} \\
+MongoDB & 8.0.9 (running locally), test database \code{blog\_e2e} \\
 Playwright (\code{@playwright/test}) & 1.65.1 \\
-Execution & headless, 1 worker (shared database), no retries \\
-Artefacts on failure & screenshot, video, Playwright trace \\
-Application under test & API on port 5000, React production build on port 3000 \\
+How tests run & headless, one at a time (shared database), no retries \\
+Saved when a test fails & screenshot, video and Playwright trace \\
+Application & API on port 5000, React build on port 3000 \\
 \bottomrule
 \end{tabular}
 \caption{Test environment}
@@ -498,48 +538,49 @@ Application under test & API on port 5000, React production build on port 3000 \
 
 \section{Browser compatibility}
 
-The 39 UI test cases were run on each of Playwright's three browser engines,
-and the 9 API test cases were run once without a browser.
+We ran the 39 browser test cases on all three browsers. The 9 API test cases do
+not need a browser, so they ran only once.
 
 \begin{table}[H]
 \centering
 \small
 \begin{tabular}{llcccr}
 \toprule
-\textbf{Project} & \textbf{Engine (version)} & \textbf{Tests} & \textbf{Passed} & \textbf{Failed} & \textbf{Time} \\
+\textbf{Project} & \textbf{Browser (version)} & \textbf{Tests} & \textbf{Passed} & \textbf{Failed} & \textbf{Time} \\
 \midrule
 chromium & Chromium 159.0.8154.6 (Desktop Chrome) & 39 & 33 & 6 & 66.9\,s \\
 firefox  & Firefox 159.0 (Desktop Firefox) & 39 & 33 & 6 & 171.3\,s \\
 webkit   & WebKit 27.2 (Desktop Safari) & 39 & 33 & 6 & 171.8\,s \\
-api      & -- (HTTP only) & 9 & 1 & 8 & 2.8\,s \\
+api      & -- (no browser) & 9 & 1 & 8 & 2.8\,s \\
 \bottomrule
 \end{tabular}
-\caption{Results per browser engine (time = sum of test durations)}
+\caption{Results on each browser (time is the total time of all tests)}
 \label{tab:browsers}
 \end{table}
 
-\paragraph{Findings.} The application behaves \textbf{identically in all three
-engines}: the same 33 tests pass and the same 6 fail in each, so no defect is
-browser-specific. Every failure comes from the server or from application
-logic, not from rendering or browser APIs. Native form validation
-(\code{required}, \code{type="email"}, \code{maxlength}), \code{localStorage},
-\code{window.alert}/\code{confirm} dialogs and offline mode behaved the same
-everywhere. Firefox and WebKit were about 2.6 times slower than Chromium,
-mainly because of slower browser start-up for each test.
+The results were the same on all three browsers. The same 33 tests passed and
+the same 6 failed on each one, so none of the bugs depend on the browser. All
+the failures come from the server or from the app's own logic. Browser form
+checks (\code{required}, \code{type="email"}, \code{maxlength}),
+\code{localStorage}, \code{alert} and \code{confirm} pop-ups and offline mode
+all worked the same way everywhere. Firefox and WebKit took about 2.6 times
+longer than Chromium, mostly because these browsers take longer to start for
+each test.
 
-One engine-specific difference was found in the \emph{test tooling}, not in the
-application. In Chromium, closing an \code{alert()} while the whole browser
-context is offline hangs Playwright. The offline-login case (TC-NET-06) was
-therefore rewritten to drop only the login request
-(\code{route.abort('internetdisconnected')}); full offline mode is still
-covered by TC-NET-02.
+We did find one difference between the browsers, but it was in Playwright and
+not in the app. In Chromium, Playwright got stuck when it tried to close an
+\code{alert()} pop-up while the browser was offline. So we changed TC-NET-06 to
+cut off only the login request (\code{route.abort('internetdisconnected')})
+instead of putting the whole browser offline. TC-NET-02 still tests full
+offline mode.
 
 % ================================================================= CHAPTER 5
 \chapter{Test Cases}\label{ch:cases}
 
-Table~\ref{tab:cases} lists all 48 test cases. The last three columns give the
-result on Chromium (C), Firefox (F) and WebKit (W); API test cases have a
-single result. Failing test cases reference the bug report they produced.
+Table~\ref{tab:cases} lists all 48 test cases. The last three columns show the
+result in Chromium (C), Firefox (F) and WebKit (W). The API tests run without a
+browser, so they have only one result. For tests that failed, the expected
+result column also shows the bug that the test found.
 
 {\small
 \setlength{\LTpre}{6pt}
@@ -557,83 +598,83 @@ single result. Failing test cases reference the bug report they produced.
 \endfoot
 \bottomrule
 \endlastfoot
-\multicolumn{6}{l}{\textbf{Registration and authentication} (\code{01-auth.spec.js})} \\
-TC-AUTH-01 & Register a new user & redirect to login; user stored with bcrypt-hashed password & \pass & \pass & \pass \\
-TC-AUTH-02 & Log in with valid credentials & redirect home, JWT in localStorage, Logout shown & \pass & \pass & \pass \\
+\multicolumn{6}{l}{\textbf{Registration and login} (\code{01-auth.spec.js})} \\
+TC-AUTH-01 & Register a new user & goes to login page; user saved with a hashed password & \pass & \pass & \pass \\
+TC-AUTH-02 & Log in with the correct details & goes to home page, token saved, Logout shown & \pass & \pass & \pass \\
 TC-AUTH-03 & Log in with a wrong password & ``Invalid credentials'', no token & \pass & \pass & \pass \\
-TC-AUTH-04 & Register an existing e-mail & ``User already exists'', still one user in DB & \pass & \pass & \pass \\
+TC-AUTH-04 & Register with an e-mail that is already used & ``User already exists'', still only one user in DB & \pass & \pass & \pass \\
 TC-AUTH-05 & Log out & token removed, Login link shown & \pass & \pass & \pass \\
-TC-AUTH-06 & Submit empty / malformed registration form & blocked by browser validation, no request sent & \pass & \pass & \pass \\
+TC-AUTH-06 & Submit an empty or wrong registration form & browser stops it, nothing sent to server & \pass & \pass & \pass \\
 \midrule
 \multicolumn{6}{l}{\textbf{Posts and comments} (\code{02-posts.spec.js})} \\
-TC-POST-01 & Create a post & post page shown, DB row with user as author, listed on home & \pass & \pass & \pass \\
-TC-POST-02 & Edit own post & new title/body shown and stored, \code{updatedAt} advanced & \pass & \pass & \pass \\
-TC-POST-03 & View someone else's post & no Edit/Delete for visitors or other users & \pass & \pass & \pass \\
-TC-POST-04 & Delete own post & redirect home, post removed from DB (BUG-01) & \fail & \fail & \fail \\
-TC-POST-05 & Add a comment & comment shown with author, stored with post and author ids & \pass & \pass & \pass \\
-TC-POST-06 & Delete own comment & comment removed from page and DB (BUG-02) & \fail & \fail & \fail \\
-TC-POST-07 & Full journey: register, login, publish, edit, comment, logout & each step succeeds; final state stored in DB & \pass & \pass & \pass \\
+TC-POST-01 & Create a post & post page shown, saved in DB with user as author, listed on home page & \pass & \pass & \pass \\
+TC-POST-02 & Edit your own post & new title and body shown and saved & \pass & \pass & \pass \\
+TC-POST-03 & Open someone else's post & no Edit or Delete buttons & \pass & \pass & \pass \\
+TC-POST-04 & Delete your own post & goes to home page, post removed from DB (BUG-01) & \fail & \fail & \fail \\
+TC-POST-05 & Add a comment & comment shown with author name and saved & \pass & \pass & \pass \\
+TC-POST-06 & Delete your own comment & comment removed from page and DB (BUG-02) & \fail & \fail & \fail \\
+TC-POST-07 & Complete flow: register, log in, publish, edit, comment, log out & every step works; final data saved in DB & \pass & \pass & \pass \\
 \midrule
 \multicolumn{6}{l}{\textbf{Session-data based} (\code{03-session.spec.js})} \\
-TC-SES-01 & No token, open protected pages & redirect to login & \pass & \pass & \pass \\
-TC-SES-02 & Token payload edited to another user & 401, session ended, nothing saved & \pass & \pass & \pass \\
-TC-SES-03 & Expired token & 401, session ended, nothing saved & \pass & \pass & \pass \\
-TC-SES-04 & Forged token edits another user's post & 401, post unchanged & \pass & \pass & \pass \\
-TC-SES-05 & Unsigned (\code{alg: none}) token & 401, nothing saved & \pass & \pass & \pass \\
-TC-SES-06 & User B's valid session edits A's post & 403 shown, B stays logged in, post unchanged & \pass & \pass & \pass \\
-TC-SES-07 & Token of a deleted account & 401, session ended (BUG-03) & \fail & \fail & \fail \\
-TC-SES-08 & Token replayed after logout & 401, nothing saved (BUG-04) & \fail & \fail & \fail \\
-TC-SES-09 & Reload and open a second tab & session kept in both & \pass & \pass & \pass \\
-TC-SES-10 & Two separate browser contexts & sessions isolated & \pass & \pass & \pass \\
-TC-SES-11 & Token removed mid-session, then save & 401 message, input kept, nothing saved & \pass & \pass & \pass \\
-TC-SES-12 & Garbage token on page load & 401 detected, token cleared, redirect & \pass & \pass & \pass \\
+TC-SES-01 & Open protected pages with no token & goes to login page & \pass & \pass & \pass \\
+TC-SES-02 & Token edited to another user's id & 401, logged out, nothing saved & \pass & \pass & \pass \\
+TC-SES-03 & Expired token & 401, logged out, nothing saved & \pass & \pass & \pass \\
+TC-SES-04 & Forged token used to edit another user's post & 401, post not changed & \pass & \pass & \pass \\
+TC-SES-05 & Token with no signature (\code{alg: none}) & 401, nothing saved & \pass & \pass & \pass \\
+TC-SES-06 & User B tries to edit user A's post & 403 shown, B stays logged in, post not changed & \pass & \pass & \pass \\
+TC-SES-07 & Token of a deleted user & 401, logged out (BUG-03) & \fail & \fail & \fail \\
+TC-SES-08 & Old token used again after logout & 401, nothing saved (BUG-04) & \fail & \fail & \fail \\
+TC-SES-09 & Reload page and open a second tab & still logged in in both & \pass & \pass & \pass \\
+TC-SES-10 & Two separate browser windows & sessions do not mix & \pass & \pass & \pass \\
+TC-SES-11 & Token removed while typing, then save & 401 message, typed text kept, nothing saved & \pass & \pass & \pass \\
+TC-SES-12 & Random text as token when page loads & 401 detected, token removed, goes to login & \pass & \pass & \pass \\
 \midrule
 \multicolumn{6}{l}{\textbf{Network failures} (\code{04-network.spec.js})} \\
-TC-NET-01 & Publish while API refuses connection & network error shown, draft kept, nothing saved & \pass & \pass & \pass \\
-TC-NET-02 & Comment while offline, then reconnect & error shown; succeeds after reconnecting & \pass & \pass & \pass \\
-TC-NET-03 & Home page when post list fails & visible error message (BUG-12) & \fail & \fail & \fail \\
-TC-NET-04 & Slow API (2\,s) and double click & button disabled while saving, exactly one post & \pass & \pass & \pass \\
-TC-NET-05 & Login gets HTTP 500 & server message shown, no session & \pass & \pass & \pass \\
-TC-NET-06 & Connection drops during login & ``Login failed'', no session & \pass & \pass & \pass \\
-TC-NET-07 & HTTP 503 while saving an edit & message shown, post unchanged & \pass & \pass & \pass \\
+TC-NET-01 & Publish while the server refuses the connection & error shown, draft kept, nothing saved & \pass & \pass & \pass \\
+TC-NET-02 & Comment while offline, then go back online & error shown; works after going online & \pass & \pass & \pass \\
+TC-NET-03 & Home page when posts fail to load & an error message is shown (BUG-12) & \fail & \fail & \fail \\
+TC-NET-04 & Slow server (2\,s) and Publish clicked twice & button disabled while saving, only one post saved & \pass & \pass & \pass \\
+TC-NET-05 & Login gets a 500 error & server message shown, not logged in & \pass & \pass & \pass \\
+TC-NET-06 & Connection drops during login & ``Login failed'', not logged in & \pass & \pass & \pass \\
+TC-NET-07 & 503 error while saving an edit & message shown, post not changed & \pass & \pass & \pass \\
 \midrule
 \multicolumn{6}{l}{\textbf{Form validation and edge cases} (\code{05-validation.spec.js})} \\
-TC-VAL-01 & Empty title or body & blocked by browser, no request & \pass & \pass & \pass \\
-TC-VAL-02 & Whitespace-only title & error shown, nothing saved & \pass & \pass & \pass \\
-TC-VAL-03 & Type 160 characters in title & field holds at most 150 & \pass & \pass & \pass \\
-TC-VAL-04 & Clear title while editing & blocked, post unchanged & \pass & \pass & \pass \\
-TC-VAL-05 & Whitespace-only comment & not saved (BUG-11) & \fail & \fail & \fail \\
-TC-VAL-06 & Malformed post id in URL & error shown & \pass & \pass & \pass \\
-TC-VAL-07 & Non-existent post id & ``Post not found'' & \pass & \pass & \pass \\
+TC-VAL-01 & Empty title or body & browser stops it, nothing sent & \pass & \pass & \pass \\
+TC-VAL-02 & Title with only spaces & error shown, nothing saved & \pass & \pass & \pass \\
+TC-VAL-03 & Type 160 characters in the title & field accepts only 150 & \pass & \pass & \pass \\
+TC-VAL-04 & Clear the title while editing & browser stops it, post not changed & \pass & \pass & \pass \\
+TC-VAL-05 & Comment with only spaces & not saved (BUG-11) & \fail & \fail & \fail \\
+TC-VAL-06 & Invalid post id in the URL & error shown & \pass & \pass & \pass \\
+TC-VAL-07 & Post id that does not exist & ``Post not found'' & \pass & \pass & \pass \\
 \midrule
-\multicolumn{6}{l}{\textbf{Server-side checks, no browser} (\code{api/server-checks.spec.js})} \\
-TC-API-01 & Protected endpoints without token & 401 for all six & \multicolumn{3}{c}{\pass} \\
+\multicolumn{6}{l}{\textbf{Server checks, no browser} (\code{api/server-checks.spec.js})} \\
+TC-API-01 & Protected endpoints called without a token & 401 for all six & \multicolumn{3}{c}{\pass} \\
 TC-API-02 & Register with missing fields & 400 (BUG-07) & \multicolumn{3}{c}{\fail} \\
-TC-API-03 & Create post with blank title & 400 (BUG-07) & \multicolumn{3}{c}{\fail} \\
-TC-API-04 & Update post with empty title & 400 (BUG-09) & \multicolumn{3}{c}{\fail} \\
-TC-API-05 & Malformed post id & 400 or 404 (BUG-08) & \multicolumn{3}{c}{\fail} \\
+TC-API-03 & Create a post with a blank title & 400 (BUG-07) & \multicolumn{3}{c}{\fail} \\
+TC-API-04 & Update a post with an empty title & 400 (BUG-09) & \multicolumn{3}{c}{\fail} \\
+TC-API-05 & Invalid post id & 400 or 404 (BUG-08) & \multicolumn{3}{c}{\fail} \\
 TC-API-06 & Empty comment & 400 (BUG-07) & \multicolumn{3}{c}{\fail} \\
-TC-API-07 & Comment on a non-existent post & 404 (BUG-10) & \multicolumn{3}{c}{\fail} \\
-TC-API-08 & Error response content & no stack trace (BUG-05) & \multicolumn{3}{c}{\fail} \\
-TC-API-09 & Anonymous \code{GET /api/users} & 401 (BUG-06) & \multicolumn{3}{c}{\fail} \\
+TC-API-07 & Comment on a post that does not exist & 404 (BUG-10) & \multicolumn{3}{c}{\fail} \\
+TC-API-08 & Contents of an error response & no stack trace (BUG-05) & \multicolumn{3}{c}{\fail} \\
+TC-API-09 & \code{GET /api/users} without logging in & 401 (BUG-06) & \multicolumn{3}{c}{\fail} \\
 \end{longtable}
 }
 
 % ================================================================= CHAPTER 6
-\chapter{Test Execution Summary}\label{ch:summary}
+\chapter{Test Results Summary}\label{ch:summary}
 
-The complete suite was executed on 26 November 2026 with
-\code{npx playwright test}. The run took 8.8 minutes and executed
-\textbf{126 tests} (39 UI test cases $\times$ 3 browsers + 9 API test cases).
+We ran the full test suite on 26 November 2026 using the command
+\code{npx playwright test}. It took 8.8 minutes and ran \textbf{126 tests} in
+total (39 browser test cases on 3 browsers, plus 9 API test cases).
 
 \begin{table}[H]
 \centering
 \begin{tabular}{lrrrr}
 \toprule
- & \textbf{Executed} & \textbf{Passed} & \textbf{Failed} & \textbf{Pass rate} \\
+ & \textbf{Run} & \textbf{Passed} & \textbf{Failed} & \textbf{Pass rate} \\
 \midrule
-All executions & 126 & 100 & 26 & 79.4\,\% \\
-Distinct test cases & 48 & 34 & 14 & 70.8\,\% \\
+All test runs & 126 & 100 & 26 & 79.4\,\% \\
+Test cases (counted once) & 48 & 34 & 14 & 70.8\,\% \\
 \bottomrule
 \end{tabular}
 \caption{Overall result}
@@ -643,19 +684,19 @@ Distinct test cases & 48 & 34 & 14 & 70.8\,\% \\
 \centering
 \begin{tabular}{lcrrrr}
 \toprule
-\textbf{Suite} & \textbf{Cases} & \textbf{Executions} & \textbf{Passed} & \textbf{Failed} & \textbf{Pass rate} \\
+\textbf{Group} & \textbf{Cases} & \textbf{Runs} & \textbf{Passed} & \textbf{Failed} & \textbf{Pass rate} \\
 \midrule
-Registration and authentication & 6 & 18 & 18 & 0 & 100.0\,\% \\
+Registration and login & 6 & 18 & 18 & 0 & 100.0\,\% \\
 Posts and comments & 7 & 21 & 15 & 6 & 71.4\,\% \\
 Session-data based & 12 & 36 & 30 & 6 & 83.3\,\% \\
 Network failures & 7 & 21 & 18 & 3 & 85.7\,\% \\
 Form validation and edge cases & 7 & 21 & 18 & 3 & 85.7\,\% \\
-Server-side checks (API) & 9 & 9 & 1 & 8 & 11.1\,\% \\
+Server checks (API) & 9 & 9 & 1 & 8 & 11.1\,\% \\
 \midrule
 \textbf{Total} & \textbf{48} & \textbf{126} & \textbf{100} & \textbf{26} & \textbf{79.4\,\%} \\
 \bottomrule
 \end{tabular}
-\caption{Results per test suite}
+\caption{Results for each group of tests}
 \end{table}
 
 \begin{figure}[H]
@@ -664,8 +705,8 @@ Server-side checks (API) & 9 & 9 & 1 & 8 & 11.1\,\% \\
 \begin{axis}[
   xbar stacked, width=0.82\textwidth, height=6.2cm,
   bar width=11pt, xmin=0, xmax=40,
-  xlabel={Test executions},
-  symbolic y coords={API checks,Validation,Network,Session,Posts,Auth},
+  xlabel={Number of test runs},
+  symbolic y coords={API checks,Validation,Network,Session,Posts,Login},
   ytick=data, y dir=reverse,
   legend style={at={(0.98,0.04)}, anchor=south east, font=\small},
   nodes near coords, nodes near coords style={font=\scriptsize, color=white},
@@ -674,31 +715,36 @@ Server-side checks (API) & 9 & 9 & 1 & 8 & 11.1\,\% \\
   tick label style={font=\small}
 ]
 \addplot[fill=green!55!black, draw=none] coordinates
-  {(18,Auth)[18] (15,Posts)[15] (30,Session)[30] (18,Network)[18] (18,Validation)[18] (1,API checks)[]};
+  {(18,Login)[18] (15,Posts)[15] (30,Session)[30] (18,Network)[18] (18,Validation)[18] (1,API checks)[]};
 \addplot[fill=red!70!black, draw=none] coordinates
-  {(0,Auth)[] (6,Posts)[6] (6,Session)[6] (3,Network)[3] (3,Validation)[3] (8,API checks)[8]};
+  {(0,Login)[] (6,Posts)[6] (6,Session)[6] (3,Network)[3] (3,Validation)[3] (8,API checks)[8]};
 \legend{Passed, Failed}
 \end{axis}
 \end{tikzpicture}
-\caption{Passed and failed executions per suite}
+\caption{Passed and failed test runs in each group}
 \end{figure}
 
-\paragraph{Interpretation.} All failures are \textbf{genuine application
-defects}: no test failed because of timing, flakiness or the environment in the
-final run, and each failure is reproducible on every browser. The 14 failing
-test cases correspond to 12 distinct bugs (Chapter~\ref{ch:bugs}); BUG-07
-explains three of them. Registration and login work correctly, and so do the
-core session protections: tampered, forged, unsigned and expired tokens and
-cross-user edits are all rejected. The weakest area is the server's handling
-of invalid input, where 8 of 9 API checks fail. Most of those failures return
-an HTTP~500 instead of a 4xx error.
+\section*{What the results show}
 
-\paragraph{Stabilisation during development.} Two problems found while
-building the suite were fixed before the final run, and neither is counted
-above. First, the edit form we added accepted typing before the post had
-loaded, so the loaded data could overwrite the user's input; the form fields
-are now disabled until loading completes. Second, the Chromium offline-dialog
-issue described in Chapter~\ref{ch:tools} was fixed in the test.
+Every failure is caused by a real bug in the application. In the final run, no
+test failed because of timing or because of the test setup, and each failure
+happened on every browser. The 14 failed test cases point to 12 different bugs
+(Chapter~\ref{ch:bugs}). Three of them come from the same bug, BUG-07.
+
+Registration and login work correctly. The main session checks also work: the
+server rejects edited, forged, unsigned and expired tokens, and one user cannot
+edit another user's post. The weakest part of the app is how the server handles
+wrong input. 8 out of 9 API tests failed, and in most of them the server
+returned a 500 error instead of a 400 or 404.
+
+\section*{Problems we fixed while writing the tests}
+
+We found two problems while building the tests and fixed them before the final
+run, so they are not counted in the results above. The first was in the edit
+form that we wrote: the user could start typing before the post had finished
+loading, and then the loaded text replaced what they had typed. We fixed this
+by disabling the form until the post is loaded. The second was the Chromium
+pop-up problem described in Chapter~\ref{ch:tools}, which we fixed in the test.
 
 \begin{figure}[H]
 \centering
@@ -709,18 +755,22 @@ issue described in Chapter~\ref{ch:tools} was fixed in the test.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/report-failure-detail.png}
-\caption{Failure detail for TC-SES-07: expected 401, received 500}
+\caption{Details of the failed test TC-SES-07: expected 401, received 500}
 \end{figure}
 
 % ================================================================= CHAPTER 7
 \chapter{Bug Reports}\label{ch:bugs}
 
-Severity reflects the impact on users or data: \textbf{High} means a core
-feature is unusable, \textbf{Medium} means a security, privacy or
-data-integrity weakness, and \textbf{Low} means incorrect status codes or
-minor usability issues. All bugs were reproduced on Chromium 159, Firefox 159
-and WebKit 27.2 (or over plain HTTP for API bugs) against upstream commit
-\code{5928eab}.
+We gave each bug a severity level:
+
+\begin{itemize}[nosep]
+  \item \textbf{High}: a main feature does not work at all.
+  \item \textbf{Medium}: a security, privacy or data problem.
+  \item \textbf{Low}: a wrong status code or a small usability problem.
+\end{itemize}
+
+Every bug happened on Chromium 159, Firefox 159 and WebKit 27.2 (API bugs were
+tested directly over HTTP), using the original code at commit \code{5928eab}.
 
 \begin{table}[H]
 \centering
@@ -729,135 +779,135 @@ and WebKit 27.2 (or over plain HTTP for API bugs) against upstream commit
 \toprule
 \textbf{ID} & \textbf{Severity} & \textbf{Summary} & \textbf{Found by} \\
 \midrule
-BUG-01 & High & Deleting a post always fails with HTTP 500 & TC-POST-04 \\
-BUG-02 & High & Deleting a comment always fails with HTTP 500 & TC-POST-06 \\
-BUG-03 & Medium & Token of a deleted user crashes the request (500, not 401) & TC-SES-07 \\
-BUG-04 & Medium & Logout does not invalidate the token; it can be replayed & TC-SES-08 \\
-BUG-05 & Medium & Error responses expose stack traces and server paths & TC-API-08 \\
-BUG-06 & Medium & Anyone can list all users with their e-mail addresses & TC-API-09 \\
-BUG-07 & Medium & Missing or blank required fields return 500 with raw DB errors & TC-API-02, 03, 06 \\
-BUG-08 & Low & Malformed record id returns 500 instead of 400/404 & TC-API-05 \\
-BUG-09 & Low & Empty title on update is silently ignored (200) & TC-API-04 \\
-BUG-10 & Medium & Comments can be created for posts that do not exist & TC-API-07 \\
-BUG-11 & Low & Whitespace-only comments are saved & TC-VAL-05 \\
-BUG-12 & Low & Home page shows an empty list with no error when the API fails & TC-NET-03 \\
+BUG-01 & High & Deleting a post always fails with a 500 error & TC-POST-04 \\
+BUG-02 & High & Deleting a comment always fails with a 500 error & TC-POST-06 \\
+BUG-03 & Medium & A deleted user's token gives a 500 error instead of 401 & TC-SES-07 \\
+BUG-04 & Medium & A token still works after logout & TC-SES-08 \\
+BUG-05 & Medium & Error replies show stack traces and server file paths & TC-API-08 \\
+BUG-06 & Medium & Anyone can see the list of all users with their e-mails & TC-API-09 \\
+BUG-07 & Medium & Missing or blank fields give a 500 error with raw database messages & TC-API-02, 03, 06 \\
+BUG-08 & Low & An invalid id gives a 500 error instead of 400 or 404 & TC-API-05 \\
+BUG-09 & Low & An empty title in an update is ignored without any error & TC-API-04 \\
+BUG-10 & Medium & Comments can be added to posts that do not exist & TC-API-07 \\
+BUG-11 & Low & Comments with only spaces are saved & TC-VAL-05 \\
+BUG-12 & Low & Home page shows nothing, and no error, when posts fail to load & TC-NET-03 \\
 \bottomrule
 \end{tabularx}
-\caption{Bug summary}
+\caption{List of bugs found}
 \end{table}
 
 \begin{bugreport}{BUG-01}{Deleting a post always fails}{High}
 Component & \code{controllers/postController.js}, \code{deletePost} \\ \hline
 Steps & 1. Log in and open one of your own posts. 2. Click \emph{Delete} and confirm. \\ \hline
-Expected & Post removed from the database; user redirected to the home page. \\ \hline
-Actual & HTTP 500 \code{\{"message":"post.remove is not a function"\}}; the error is shown on the page and the post remains (Figure~\ref{fig:bugdelete}). \\ \hline
-Root cause & \code{Document.prototype.remove()} was removed in Mongoose 7; the app uses Mongoose 8. \\ \hline
-Suggested fix & Use \code{await post.deleteOne()}. \\ \hline
+Expected & The post is deleted from the database and the user goes to the home page. \\ \hline
+Actual & The server returns 500 \code{\{"message":"post.remove is not a function"\}}. The error is shown on the page and the post is not deleted (Figure~\ref{fig:bugdelete}). \\ \hline
+Cause & The \code{remove()} method was removed in Mongoose 7, and the app uses Mongoose 8. \\ \hline
+Suggested fix & Use \code{await post.deleteOne()} instead. \\ \hline
 \end{bugreport}
 
 \begin{bugreport}{BUG-02}{Deleting a comment always fails}{High}
 Component & \code{controllers/commentController.js}, \code{deleteComment} \\ \hline
 Steps & 1. Log in and add a comment. 2. Click \emph{Delete} next to it. \\ \hline
-Expected & Comment removed from the page and the database. \\ \hline
-Actual & HTTP 500 \code{comment.remove is not a function}; the comment remains. \\ \hline
-Root cause & Same as BUG-01. \\ \hline
-Suggested fix & Use \code{await comment.deleteOne()}. \\ \hline
+Expected & The comment is removed from the page and the database. \\ \hline
+Actual & The server returns 500 \code{comment.remove is not a function} and the comment stays. \\ \hline
+Cause & Same as BUG-01. \\ \hline
+Suggested fix & Use \code{await comment.deleteOne()} instead. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-03}{Token of a deleted user crashes the request}{Medium}
+\begin{bugreport}{BUG-03}{A deleted user's token causes a server error}{Medium}
 Component & \code{middleware/auth.js}, \code{protect} \\ \hline
-Steps & 1. Log in (session stored in the browser). 2. Delete the user's account from the database. 3. Publish a post or open \code{/api/users/me}. \\ \hline
-Expected & HTTP 401; the client ends the session and shows the login page. \\ \hline
-Actual & HTTP 500 \code{Cannot read properties of null (reading '\_id')}. The client keeps the dead session and shows a technical error. \\ \hline
-Root cause & \code{protect} sets \code{req.user} to the result of \code{findById}, which is \code{null}, and calls \code{next()} without checking it. \\ \hline
-Suggested fix & If the user is not found, respond with 401 \code{"User no longer exists"}. \\ \hline
+Steps & 1. Log in. 2. Delete this user from the database. 3. In the same browser, publish a post or open \code{/api/users/me}. \\ \hline
+Expected & The server returns 401, and the website logs the user out and shows the login page. \\ \hline
+Actual & The server returns 500 \code{Cannot read properties of null (reading '\_id')}. The website keeps the old session and shows a technical error message. \\ \hline
+Cause & \code{protect} looks up the user, gets \code{null}, and continues without checking it. \\ \hline
+Suggested fix & If the user is not found, return 401 with a message such as ``User no longer exists''. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-04}{Logout does not invalidate the session token}{Medium}
-Component & Authentication design (stateless JWT, client-only logout) \\ \hline
+\begin{bugreport}{BUG-04}{A token still works after logout}{Medium}
+Component & Login design (logout only deletes the token in the browser) \\ \hline
 Steps & 1. Log in and copy the token from \code{localStorage}. 2. Log out. 3. Put the copied token back and publish a post. \\ \hline
-Expected & The token is rejected after logout (401). \\ \hline
-Actual & HTTP 201; the post is created. A token captured from a shared computer, a log or an XSS attack remains usable for its full 7-day lifetime. \\ \hline
-Suggested fix & Add a server-side logout that revokes tokens (deny-list or per-user token version), and shorten the token lifetime. \\ \hline
+Expected & The token no longer works after logout (401). \\ \hline
+Actual & The server returns 201 and the post is created. If someone gets hold of a token, for example on a shared computer, they can keep using it for 7 days until it expires. \\ \hline
+Suggested fix & Let the server cancel a token on logout (for example, by keeping a list of logged-out tokens), and make tokens expire sooner. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-05}{Error responses expose stack traces}{Medium}
+\begin{bugreport}{BUG-05}{Error replies show stack traces}{Medium}
 Component & \code{middleware/errorHandler.js} \\ \hline
-Steps & Trigger any unhandled error, e.g.\ \code{GET /api/users/me} with the token of a deleted user. \\ \hline
-Expected & A generic error message without internal details. \\ \hline
-Actual & The JSON response contains \code{stack} with the full stack trace, including absolute server file paths. \\ \hline
-Root cause & The stack is included unless \code{NODE\_ENV} is \code{production}, and nothing sets it. \\ \hline
-Suggested fix & Never send \code{err.stack} to clients; log it on the server instead. \\ \hline
+Steps & Cause any server error, for example \code{GET /api/users/me} with a deleted user's token. \\ \hline
+Expected & A simple error message without internal details. \\ \hline
+Actual & The reply contains a \code{stack} field with the full stack trace, including the file paths on the server. \\ \hline
+Cause & The stack trace is sent unless \code{NODE\_ENV} is set to \code{production}, and the app never sets it. \\ \hline
+Suggested fix & Do not send \code{err.stack} in the reply. Write it to the server log instead. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-06}{User list with e-mail addresses is public}{Medium}
+\begin{bugreport}{BUG-06}{Anyone can see all users and their e-mails}{Medium}
 Component & \code{routes/users.js}, \code{GET /api/users} \\ \hline
-Steps & Without logging in, request \code{GET /api/users}. \\ \hline
-Expected & 401, or a list without personal data. \\ \hline
-Actual & HTTP 200 with every user's username, e-mail address and timestamps. \\ \hline
-Suggested fix & Protect the route (admin only), and never return e-mail addresses publicly; \code{GET /api/users/:id} has the same problem. \\ \hline
+Steps & Without logging in, open \code{GET /api/users}. \\ \hline
+Expected & 401, or a list that does not include personal details. \\ \hline
+Actual & The server returns 200 with every user's username, e-mail address and dates. \\ \hline
+Suggested fix & Allow this route only for admins, and do not return e-mail addresses publicly. \code{GET /api/users/:id} has the same problem. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-07}{Invalid input returns HTTP 500 with raw database errors}{Medium}
+\begin{bugreport}{BUG-07}{Wrong input gives a 500 error with raw database messages}{Medium}
 Component & \code{authController.register}, \code{postController.createPost}, \code{commentController.createComment} \\ \hline
-Steps & Send \code{POST /api/auth/register} with only an e-mail, \code{POST /api/posts} with title \code{"   "}, or \code{POST /api/comments} with empty text. \\ \hline
-Expected & HTTP 400 with a user-friendly validation message. \\ \hline
-Actual & HTTP 500 with Mongoose's internal message, e.g.\ \code{User validation failed: username: Path `username` is required.}, which is also shown to users in the UI. \\ \hline
-Suggested fix & Validate request bodies before saving (the empty \code{utils/validator.js} suggests this was planned) and map \code{ValidationError} to 400. \\ \hline
+Steps & Send \code{POST /api/auth/register} with only an e-mail, \code{POST /api/posts} with the title \code{"   "}, or \code{POST /api/comments} with empty text. \\ \hline
+Expected & 400 with a clear message for the user. \\ \hline
+Actual & 500 with Mongoose's internal message, for example \code{User validation failed: username: Path `username` is required.} The same message is also shown to users on the website. \\ \hline
+Suggested fix & Check the input before saving it, and return 400 for validation errors. The project has an empty \code{utils/validator.js} file, so this was probably planned. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-08}{Malformed record id returns HTTP 500}{Low}
-Component & \code{getPostById} and the other \code{:id} handlers \\ \hline
-Steps & Request \code{GET /api/posts/not-an-id}. \\ \hline
-Expected & HTTP 400 or 404. \\ \hline
-Actual & HTTP 500 \code{Cast to ObjectId failed for value "not-an-id"}. \\ \hline
-Suggested fix & Check \code{mongoose.isValidObjectId(id)} first and return 404. \\ \hline
+\begin{bugreport}{BUG-08}{An invalid id gives a 500 error}{Low}
+Component & \code{getPostById} and the other routes that take an \code{:id} \\ \hline
+Steps & Open \code{GET /api/posts/not-an-id}. \\ \hline
+Expected & 400 or 404. \\ \hline
+Actual & 500 \code{Cast to ObjectId failed for value "not-an-id"}. \\ \hline
+Suggested fix & Check the id with \code{mongoose.isValidObjectId(id)} first and return 404 if it is not valid. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-09}{Empty title on update is silently ignored}{Low}
+\begin{bugreport}{BUG-09}{An empty title in an update is ignored}{Low}
 Component & \code{postController.updatePost} \\ \hline
 Steps & As the author, send \code{PUT /api/posts/:id} with \code{\{"title": ""\}}. \\ \hline
-Expected & HTTP 400 ``title cannot be empty''. \\ \hline
-Actual & HTTP 200 and the old title is kept, so the client believes the update succeeded. \\ \hline
-Root cause & \code{post.title = req.body.title || post.title} treats an empty string as ``not provided''. \\ \hline
-Suggested fix & Check for \code{undefined} explicitly and validate provided values. \\ \hline
+Expected & 400 with a message that the title cannot be empty. \\ \hline
+Actual & 200, and the old title is kept. The website thinks the update worked. \\ \hline
+Cause & The code \code{post.title = req.body.title || post.title} treats an empty string as if no title was sent. \\ \hline
+Suggested fix & Check whether a title was sent, and if it was, check that it is not empty. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-10}{Comments can be created for posts that do not exist}{Medium}
+\begin{bugreport}{BUG-10}{Comments can be added to posts that do not exist}{Medium}
 Component & \code{commentController.createComment} \\ \hline
-Steps & Logged in, send \code{POST /api/comments} with a well-formed but non-existent \code{postId}. \\ \hline
-Expected & HTTP 404 ``Post not found''. \\ \hline
-Actual & HTTP 201; an orphan comment is stored. Comments of deleted posts are also never cleaned up. \\ \hline
-Suggested fix & Check that the post exists before creating the comment; delete a post's comments when the post is deleted. \\ \hline
+Steps & While logged in, send \code{POST /api/comments} with a valid-looking \code{postId} that does not belong to any post. \\ \hline
+Expected & 404 ``Post not found''. \\ \hline
+Actual & 201, and the comment is saved for a post that does not exist. Also, when a post is deleted, its comments are not deleted. \\ \hline
+Suggested fix & Check that the post exists before saving the comment, and delete a post's comments when the post is deleted. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-11}{Whitespace-only comments are saved}{Low}
+\begin{bugreport}{BUG-11}{Comments with only spaces are saved}{Low}
 Component & \code{models/Comment.js} \\ \hline
 Steps & On a post page, type three spaces in the comment box and click \emph{Add comment}. \\ \hline
-Expected & Comment rejected. \\ \hline
-Actual & An empty-looking comment is stored and displayed. \\ \hline
-Suggested fix & Add \code{trim: true} to \code{text} in the schema (as \code{Post.title} already has). \\ \hline
+Expected & The comment is not accepted. \\ \hline
+Actual & An empty-looking comment is saved and shown. \\ \hline
+Suggested fix & Add \code{trim: true} to the \code{text} field in the schema, as the post title already has. \\ \hline
 \end{bugreport}
 
-\begin{bugreport}{BUG-12}{Home page fails silently when the API is unavailable}{Low}
+\begin{bugreport}{BUG-12}{Home page shows nothing when posts fail to load}{Low}
 Component & \code{blog-client/src/pages/Home.js} \\ \hline
-Steps & Open the home page while the post list request fails (server down or network error). \\ \hline
-Expected & A visible message such as ``Could not load posts, please try again''. \\ \hline
-Actual & Only the heading is shown (Figure~\ref{fig:bughome}); the error is written to the developer console. Users cannot tell an outage from an empty blog. \\ \hline
-Suggested fix & Keep an error state in \code{Home} and render a message with a retry option. \\ \hline
+Steps & Open the home page while the server is down or the network fails. \\ \hline
+Expected & A message such as ``Could not load posts, please try again''. \\ \hline
+Actual & Only the heading is shown (Figure~\ref{fig:bughome}). The error is only printed in the browser console, so the user cannot tell whether the server is down or the blog just has no posts. \\ \hline
+Suggested fix & Store the error in the Home page and show a message with a Retry button. \\ \hline
 \end{bugreport}
 
 % ================================================================= CHAPTER 8
 \chapter{Application Test Results}\label{ch:screens}
 
-The screenshots below were captured with Playwright (Chromium) against the
-test database; the script that produces them is
+These screenshots were taken with Playwright in Chromium, using the test
+database. The script that takes them is
 \code{e2e-tests/scripts/capture-report-figures.js}.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/app-home.png}
-\caption{Home page listing posts}
+\caption{Home page with the list of posts}
 \end{figure}
 
 \begin{figure}[H]
@@ -869,7 +919,7 @@ test database; the script that produces them is
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/app-post-author.png}
-\caption{Post page seen by its author: Edit/Delete and own-comment Delete are shown}
+\caption{A post as seen by its author, with Edit and Delete buttons}
 \end{figure}
 
 \begin{figure}[H]
@@ -881,13 +931,13 @@ test database; the script that produces them is
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/ses-403-other-user.png}
-\caption{Session-data test TC-SES-06: Bob's valid session submits an edit to Alice's post and the server answers 403}
+\caption{TC-SES-06: Bob is logged in and tries to save a change to Alice's post. The server replies with 403.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/net-publish-offline.png}
-\caption{Network test TC-NET-01: the API is unreachable, so the user is told and the draft is kept}
+\caption{TC-NET-01: the server cannot be reached, so the user sees an error and the draft is kept}
 \end{figure}
 
 \begin{figure}[H]
@@ -900,34 +950,36 @@ test database; the script that produces them is
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/bug-home-network.png}
-\caption{BUG-12: when the post list cannot be loaded, the home page is silently empty}
+\caption{BUG-12: the home page stays empty, with no message, when posts cannot be loaded}
 \label{fig:bughome}
 \end{figure}
 
 % ================================================================= CHAPTER 9
 \chapter{Conclusion}
 
-A MERN blog application was tested end to end with 48 Playwright test cases
-running on Chromium, Firefox and WebKit. The tests cover registration and
-authentication, record creation and editing with database verification, and
-the critical publish--edit--comment journey. Session-data based testing was
-used to derive the negative cases for unauthorized access, together with tests
-for network failures and form validation.
+We tested a MERN blog application from end to end with 48 Playwright test cases
+on Chromium, Firefox and WebKit. The tests cover registration and login,
+creating and editing posts and comments (with checks in the database), and the
+complete flow of publishing, editing and commenting. We used session-data based
+testing to write the negative test cases for unauthorized access, and we also
+tested network failures and form validation.
 
-The run executed 126 tests with a \textbf{79.4\,\%} pass rate, and the results
-were identical in all three browsers. The core session protections hold:
-tampered, forged, unsigned and expired tokens and cross-user edits are all
-rejected. The suite also found \textbf{12 defects}. Two of them make deleting
-posts and comments impossible, four are security or privacy weaknesses (a
-session token that stays valid after logout, leaked stack traces, a public user
-directory with e-mail addresses, and a crash on a deleted user's token), and
-the rest concern server-side validation and error handling. Because the tests
-assert correct behaviour, they also serve as regression tests: once the
-suggested fixes are applied, the same suite will confirm them.
+Out of 126 test runs, 100 passed (79.4\,\%), and the results were the same on
+all three browsers. The main session checks work well. The server rejects
+edited, forged, unsigned and expired tokens, and users cannot edit each other's
+posts.
+
+The tests also found 12 bugs. Two of them stop users from deleting posts and
+comments. Four are security or privacy problems: tokens still work after
+logout, error replies show stack traces, anyone can see all users' e-mail
+addresses, and a deleted user's token causes a server error. The rest are about
+how the server checks input and handles errors. Since our tests check for the
+correct behaviour, they can be run again after these bugs are fixed to confirm
+the fixes.
 
 \bigskip
-\noindent For more details on the project, including the source code, installation
-steps and the test cases, please refer to the
+\noindent For more details on the project, including the source code,
+installation steps and test cases, please refer to the
 \href{\repourl}{\fbox{GitHub Repository}}.
 
 % ================================================================= APPENDIX
@@ -944,9 +996,9 @@ cd blog-client && npm install && cd ../..
 
 # tests (MongoDB must be running on 127.0.0.1:27017)
 cd e2e-tests && npm install
-npx playwright install          # Chromium, Firefox, WebKit
-npx playwright test             # starts API + React build automatically
-npx playwright show-report      # HTML report with traces and screenshots
+npx playwright install          # downloads Chromium, Firefox and WebKit
+npx playwright test             # starts the API and the React build automatically
+npx playwright show-report      # opens the HTML report
 \end{lstlisting}
 
 \end{document}
