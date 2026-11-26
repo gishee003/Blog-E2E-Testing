@@ -1,0 +1,18 @@
+{
+  "name": "blog-e2e-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end tests for the MERN blog app in ../app",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:headed": "playwright test --project=chromium --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.9.1",
+    "serve": "^14.2.8"
+  }
+}
