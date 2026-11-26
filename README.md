@@ -15,6 +15,7 @@ blog-e2e-testing/
 │   ├── server.js, app.js   Express API (port 5000)
 │   ├── controllers/ models/ routes/ middleware/ config/
 │   └── blog-client/        React front end (Create React App, port 3000)
+├── docs/report/          Project report (LaTeX source + figures)
 └── e2e-tests/            Playwright test project
     ├── playwright.config.js
     ├── tests/
